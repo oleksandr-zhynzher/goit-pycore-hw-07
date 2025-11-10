@@ -123,11 +123,16 @@ def input_error(func):
         try:
             return func(*args, **kwargs)
         except ValueError as e:
-            return str(e)
+            error_msg = str(e)
+            if "not enough values to unpack" in error_msg:
+                return "Not enough arguments. Please check the command format."
+            return error_msg
         except KeyError as e:
             return str(e)
         except IndexError:
             return "Invalid command format. Please check your input."
+        except AttributeError:
+            return "Contact not found."
         except Exception as e:
             return f"An error occurred: {str(e)}"
     return inner
@@ -158,8 +163,6 @@ def add_contact(args, book: AddressBook):
 def change_contact(args, book: AddressBook):
     name, old_phone, new_phone, *_ = args
     record = book.find(name)
-    if record is None:
-        return f"Contact {name} not found."
     record.edit_phone(old_phone, new_phone)
     return "Contact updated."
 
@@ -168,8 +171,6 @@ def change_contact(args, book: AddressBook):
 def show_phone(args, book: AddressBook):
     name, *_ = args
     record = book.find(name)
-    if record is None:
-        return f"Contact {name} not found."
     if not record.phones:
         return f"No phones found for {name}."
     return f"{name}: {', '.join(p.value for p in record.phones)}"
@@ -189,8 +190,6 @@ def show_all(book: AddressBook):
 def add_birthday(args, book: AddressBook):
     name, birthday, *_ = args
     record = book.find(name)
-    if record is None:
-        return f"Contact {name} not found."
     record.add_birthday(birthday)
     return "Birthday added."
 
@@ -199,8 +198,6 @@ def add_birthday(args, book: AddressBook):
 def show_birthday(args, book: AddressBook):
     name, *_ = args
     record = book.find(name)
-    if record is None:
-        return f"Contact {name} not found."
     if record.birthday is None:
         return f"No birthday found for {name}."
     return f"{name}: {record.birthday}"
@@ -259,4 +256,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
